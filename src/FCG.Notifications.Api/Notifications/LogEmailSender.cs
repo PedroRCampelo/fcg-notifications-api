@@ -12,9 +12,10 @@ public class LogEmailSender : IEmailSender
 
     public Task EnviarAsync(MensagemDeEmail mensagem, CancellationToken cancellationToken = default)
     {
-        // O prefixo em maiúsculas e as barras fazem a linha se destacar no meio dos logs de infraestrutura.
+        // O prefixo em maiúsculas e as setas fazem a linha se destacar no meio dos logs de infraestrutura.
+        // O formato :l (literal) evita que o Serilog envolva os textos em aspas na mensagem renderizada.
         _logger.LogInformation(
-            ">>>>>>>> E-MAIL ENVIADO ({Tipo}) <<<<<<<< Para: {Para} | Assunto: {Assunto} | Mensagem: {Corpo}",
+            ">>>>>>>> E-MAIL ENVIADO ({Tipo}) <<<<<<<< Para: {Para:l} | Assunto: {Assunto:l} | Mensagem: {Corpo:l}",
             mensagem.Tipo, mensagem.Para, mensagem.Assunto, mensagem.Corpo);
 
         return Task.CompletedTask;
