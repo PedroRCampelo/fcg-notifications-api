@@ -23,6 +23,9 @@ public class RabbitMqSettings
         if (string.IsNullOrWhiteSpace(settings.Queues.NotificationsUserCreated))
             throw new InvalidOperationException("Nome da fila ausente. Defina RabbitMq__Queues__NotificationsUserCreated.");
 
+        if (string.IsNullOrWhiteSpace(settings.Queues.NotificationsPaymentProcessed))
+            throw new InvalidOperationException("Nome da fila ausente. Defina RabbitMq__Queues__NotificationsPaymentProcessed.");
+
         return settings;
     }
 }
@@ -32,4 +35,7 @@ public class QueuesSettings
     // O UsersAPI declara esta mesma fila no startup dele. Os dois serviços precisam ler o mesmo
     // valor desta chave (no Kubernetes, do mesmo ConfigMap).
     public string NotificationsUserCreated { get; set; } = string.Empty;
+
+    // O PaymentsAPI, que publica o PaymentProcessedEvent, declara esta fila no startup dele.
+    public string NotificationsPaymentProcessed { get; set; } = string.Empty;
 }

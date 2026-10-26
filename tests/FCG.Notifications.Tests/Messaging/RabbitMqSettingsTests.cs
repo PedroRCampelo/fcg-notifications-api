@@ -14,7 +14,8 @@ public class RabbitMqSettingsTests
         ["RabbitMq:Host"] = "rabbitmq",
         ["RabbitMq:Username"] = "fcg",
         ["RabbitMq:Password"] = "segredo",
-        ["RabbitMq:Queues:NotificationsUserCreated"] = "notifications.user-created"
+        ["RabbitMq:Queues:NotificationsUserCreated"] = "notifications.user-created",
+        ["RabbitMq:Queues:NotificationsPaymentProcessed"] = "notifications.payment-processed"
     };
 
     [Fact]
@@ -26,6 +27,7 @@ public class RabbitMqSettingsTests
         Assert.Equal(5672, settings.Port);
         Assert.Equal("fcg", settings.Username);
         Assert.Equal("notifications.user-created", settings.Queues.NotificationsUserCreated);
+        Assert.Equal("notifications.payment-processed", settings.Queues.NotificationsPaymentProcessed);
     }
 
     [Fact]
@@ -39,14 +41,16 @@ public class RabbitMqSettingsTests
         Assert.Contains("RabbitMq__Password", erro.Message);
     }
 
-    [Fact]
-    public void Carregar_Sem_Nome_Da_Fila_Deve_Falhar_Apontando_A_Variavel()
+    [Theory]
+    [InlineData("RabbitMq:Queues:NotificationsUserCreated", "RabbitMq__Queues__NotificationsUserCreated")]
+    [InlineData("RabbitMq:Queues:NotificationsPaymentProcessed", "RabbitMq__Queues__NotificationsPaymentProcessed")]
+    public void Carregar_Sem_Nome_De_Fila_Deve_Falhar_Apontando_A_Variavel(string chave, string variavel)
     {
         var valores = Completa();
-        valores.Remove("RabbitMq:Queues:NotificationsUserCreated");
+        valores.Remove(chave);
 
         var erro = Assert.Throws<InvalidOperationException>(() => RabbitMqSettings.Carregar(Configuracao(valores)));
 
-        Assert.Contains("RabbitMq__Queues__NotificationsUserCreated", erro.Message);
+        Assert.Contains(variavel, erro.Message);
     }
 }

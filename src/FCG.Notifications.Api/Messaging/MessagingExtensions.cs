@@ -15,6 +15,7 @@ public static class MessagingExtensions
         services.AddMassTransit(bus =>
         {
             bus.AddConsumer<UserCreatedConsumer>();
+            bus.AddConsumer<PaymentProcessedConsumer>();
 
             bus.UsingRabbitMq((context, cfg) =>
             {
@@ -24,21 +25,29 @@ public static class MessagingExtensions
                     host.Password(rabbit.Password);
                 });
 
-                // Fila com nome fixo e vindo de configuração: o publicador (UsersAPI) precisa
-                // conhecer o mesmo nome para declará-la antes de este serviço subir.
+                // Filas com nome fixo e vindo de configuração: quem publica cada evento (UsersAPI e PaymentsAPI)
+                // precisa conhecer o mesmo nome para declará-la antes de este serviço subir.
                 cfg.ReceiveEndpoint(rabbit.Queues.NotificationsUserCreated, endpoint =>
                 {
                     endpoint.ConfigureConsumer<UserCreatedConsumer>(context);
+                    ConfigurarRetentativas(endpoint);
+                });
 
-                    endpoint.UseMessageRetry(retry =>
-                    {
-                        retry.Ignore<EventoInvalidoException>();
-                        retry.Interval(3, TimeSpan.FromSeconds(2));
-                    });
+                cfg.ReceiveEndpoint(rabbit.Queues.NotificationsPaymentProcessed, endpoint =>
+                {
+                    endpoint.ConfigureConsumer<PaymentProcessedConsumer>(context);
+                    ConfigurarRetentativas(endpoint);
                 });
             });
         });
 
         return services;
     }
+
+    private static void ConfigurarRetentativas(IReceiveEndpointConfigurator endpoint) =>
+        endpoint.UseMessageRetry(retry =>
+        {
+            retry.Ignore<EventoInvalidoException>();
+            retry.Interval(3, TimeSpan.FromSeconds(2));
+        });
 }
