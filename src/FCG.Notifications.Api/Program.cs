@@ -1,4 +1,5 @@
 using FCG.Notifications.Api.Messaging;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Formatting.Compact;
@@ -29,6 +30,9 @@ try
     app.UseSerilogRequestLogging();
 
     // Este serviço só consome eventos. O único endpoint HTTP é o de saúde (probes do Docker e do Kubernetes).
+    // Liveness sem dependências: só diz que o processo responde. O /health abaixo inclui o broker (MassTransit)
+    // e serve de readiness e startup; ele não pode ser a liveness, senão uma queda do RabbitMQ reiniciaria os pods.
+    app.MapHealthChecks("/health/live", new HealthCheckOptions { Predicate = _ => false });
     app.MapHealthChecks("/health");
 
     app.Run();
